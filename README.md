@@ -162,6 +162,7 @@ profiles. Instances are ordinary apps in a folder you can inspect.
 
 ## Screenshots
 
-<!-- Screenshots go here -->
+<img width="990" height="671" alt="Screenshot 2026-07-28 at 7 59 02 am" src="https://github.com/user-attachments/assets/db134483-f02a-4d60-bc24-b51ff859e657" />
+
 
 <br>
