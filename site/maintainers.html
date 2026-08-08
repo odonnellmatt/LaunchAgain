@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="LaunchAgain maintainer and AI-agent instructions.">
+  <title>Maintainers · LaunchAgain</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a class="brand" href="index.html"><span class="mark" aria-hidden="true">LA</span>LaunchAgain</a>
+    <div class="links"><a href="patches.html">Patches</a><a href="maintainers.html" aria-current="page">Maintainers</a></div>
+  </nav>
+  <main class="section">
+    <div class="eyebrow">Operating contract</div>
+    <h1>Build with evidence.</h1>
+    <p class="lead">The repository's <code>AGENTS.md</code> is authoritative. This public summary keeps the maintenance direction visible without publishing private source.</p>
+    <section class="grid">
+      <article class="card"><h2>Protect</h2><p>Never modify a source app, inspect credentials, weaken exact-path deletion, run destructive tests against a real profile, or add telemetry.</p></article>
+      <article class="card"><h2>Prove</h2><p>Reproduce first, add a failing regression, run the full suite and strict-concurrency build, then test the assembled app and DMG.</p></article>
+      <article class="card"><h2>Record</h2><p>Every patch updates README, changelog, this site's patch record, and affected security, privacy, limitation, or validation documents.</p></article>
+    </section>
+    <h2>Required validation</h2>
+    <pre><code>swift test
+swift build -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete
+./Scripts/integration-test.sh
+./Scripts/ui-regression-test.sh 3
+./Scripts/package-dmg.sh
+./Scripts/publish-pages.sh</code></pre>
+    <h2>Identity hygiene</h2>
+    <p>Use generic paths, addresses, account labels, and fixtures. Never commit a real name, username, email address, machine name, home path, registry, profile, diagnostics export, signing identity, credential, local settings file, or build log. The source repository stays private; the publishing script copies only the allow-listed <code>site/</code> payload into the separate public Pages repository.</p>
+    <h2>Release rule</h2>
+    <p>The top changelog version drives the bundle and DMG version. Hosted validation is keyed by commit so evidence cannot be displaced by a delayed event for an older revision. Workflows track the current official Node 24 action majors, including <code>actions/checkout@v7</code>. Public distribution requires Developer ID signing, Apple notarization, stapling, checksums, a matching tag, and release notes supported by observed validation output.</p>
+  </main>
+  <footer>Maintainer summary · See AGENTS.md in the private repository for the complete contract.</footer>
+</body>
+</html>

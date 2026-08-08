@@ -1,0 +1,40 @@
+name: Bug report
+description: Report a reproducible LaunchAgain defect without attaching private profile data.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not upload a registry, profile, diagnostics file, account label, credential, or unredacted home path.
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What happened?
+      description: Describe the observed result and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: List the smallest reliable sequence using generic app and account labels.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: LaunchAgain version
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and hardware architecture
+    validations:
+      required: true
+  - type: textarea
+    id: checks
+    attributes:
+      label: Additional evidence
+      description: Sanitized error text, whether the instance is Full or Lite, and any relevant display or permission state.

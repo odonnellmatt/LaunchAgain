@@ -1,0 +1,10 @@
+icon_128x128.png: 0 near-black of 16384
+icon_128x128@2x.png: 0 near-black of 65536
+icon_16x16.png: 0 near-black of 256
+icon_16x16@2x.png: 0 near-black of 1024
+icon_256x256.png: 0 near-black of 65536
+icon_256x256@2x.png: 0 near-black of 262144
+icon_32x32.png: 0 near-black of 1024
+icon_32x32@2x.png: 0 near-black of 4096
+icon_512x512.png: 0 near-black of 262144
+icon_512x512@2x.png: 0 near-black of 1048576

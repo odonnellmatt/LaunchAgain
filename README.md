@@ -1,168 +1,299 @@
-# LaunchAgain — Beta v0.1
+# LaunchAgain
 
-**Run two copies of the same Mac app at the same time, each signed into a different account.**
+Run two or more accounts of the same compatible Mac app at the same time. Full-compatible
+apps get their own numbered Dock icon; Lite-compatible apps keep separate profiles while
+sharing the original app's Dock icon.
 
-### [⬇ Download the beta](https://github.com/odonnellmatt/LaunchAgain/releases/latest)
+You pick Claude, ask for three instances, name them *Personal*, *Work* and *Research*, and
+end up with three apps in `~/Applications/LaunchAgain/` whose icons carry a
+**1**, **2** and **3** badge. All three run at once. Each is signed into a different
+account. Deleting #2 leaves #3 as #3. `/Applications/Claude.app` is never touched.
 
-macOS 13 or later · Apple Silicon and Intel · ~5 MB download · free, no account needed
+LaunchAgain creates and opens GUI applications only. Codex Desktop is supported through
+its installed GUI bundle (`/Applications/ChatGPT.app`, bundle identifier
+`com.openai.codex`) and is shown as **Codex** in the chooser. It never substitutes the
+embedded `codex` command-line executable or opens a Terminal window.
+
+**This does not bypass anything.** Each instance is a separate local profile for a
+separate account you already have. If a service limits concurrent sessions, that limit
+still applies. No SIP change, no Gatekeeper change, no root, no helper tool, no network
+access of any kind.
 
 ---
 
-## The problem
+## Project status and documentation
 
-macOS lets you run one copy of an app. One Claude. One ChatGPT. One Chrome profile in the Dock.
-So if you have a work account and a personal account, you spend your day signing out and back
-in, or living in a browser tab because at least tabs can be two things at once.
+**Current beta release: 0.1.2.** This beta packages the hardened implementation that repairs cloned Electron windows whose saved title
+bar is stranded on a disconnected or differently sized display, and hardens all queue and
+logging code for Swift 6 strict concurrency, including sendable progress reporting and
+service cleanup that remain portable across supported Swift toolchains. Window identity
+now stays in the system title bar across sidebar changes instead of relying on an
+OS-dependent AppKit bridge, and hosted CI is isolated by commit so delayed events cannot
+cancel evidence for a newer revision. Repository workflows use the current official
+Node 24 action majors, including `actions/checkout@v7`. If an
+instance was created with an older release, install 0.1.2 and choose **Rebuild from Source
+App** once; its number, name, and profile are preserved while the launcher receives the new shim.
 
-LaunchAgain gives you a second copy. And a third. Each one is a real application with its own
-icon in the Dock, its own window, its own login — and they run **at the same time**.
+- [Project site and release notes](https://odonnellmatt.github.io/LaunchAgain-site/)
+- [Patch history](https://odonnellmatt.github.io/LaunchAgain-site/patches.html)
+- [Maintainer guide](https://odonnellmatt.github.io/LaunchAgain-site/maintainers.html)
+- [Download beta v0.1.2](https://github.com/odonnellmatt/LaunchAgain/releases/tag/v0.1.2)
 
-<br>
+This public repository is a de-identified beta snapshot. Maintainers use a separate private
+source repository for day-to-day development, while GitHub Pages is deployed from a public
+mirror containing only the intentionally public files in `site/`; it does not publish
+diagnostics, local profiles or maintainer identity. After a documented patch, an
+authenticated maintainer runs `./Scripts/publish-pages.sh`; the mirror's Pages workflow then
+deploys only its `public/` directory.
 
-|  | Before | With LaunchAgain |
-|---|---|---|
-| **Claude** | one account, sign in and out | Claude 1 (work) and Claude 2 (personal), both open |
-| **Chrome** | profile switcher, one Dock icon | separate apps, separate Dock icons, ⌘-Tab between them |
-| **VS Code** | one set of settings and extensions | one per project or client |
+### Installing the beta
 
-<br>
+Download the `LaunchAgain-0.1.2.dmg` asset from the release, open it, and drag
+**LaunchAgain** to Applications. The beta is ad-hoc signed rather than notarized, so the
+first launch may require Control-clicking the Applications copy and choosing **Open**, then
+confirming **Open**. Existing clones should be rebuilt from their source application once
+after installation so they receive the current launcher shim.
 
-## Who this is for
+## Requirements
 
-**Work and personal, side by side.** The obvious one. Your work Claude and your personal Claude
-open together, in separate windows, with separate histories. Nothing leaks between them — each
-instance has its own profile directory, its own cookies, its own local storage. No more signing
-out at 6pm.
+- macOS 13 or later (built and tested on Apple Silicon; the release build is universal)
+- Xcode command line tools, for `swift build`, `codesign` and `iconutil`
 
-**Several personal accounts.** Just as common and just as supported. A main account and a
-throwaway. One per side project. A shared family account and your own. Separate accounts for
-separate hobbies. There's nothing "work" about it — LaunchAgain doesn't know or care what the
-accounts are for, and you can make up to 64 of them.
+## Build and run
 
-**Client separation.** If you consult, each client can have its own instance with its own
-sign-in, its own extensions and its own settings, so nothing bleeds across engagements.
+```bash
+./Scripts/build-app.sh --debug --run
+```
 
-> **One thing to be clear about:** this separates local profiles for accounts you already have.
-> It does not bypass licensing, subscriptions or authentication. If a service limits how many
-> sessions you can run on one account, that limit still applies — you'd use it with two accounts
-> you're already entitled to.
+That produces `build/LaunchAgain.app` and opens it. For a universal release
+build, drop `--debug`. `./Scripts/package-dmg.sh` builds the release, assembles a DMG with
+the documentation alongside it, and — if you set `MAL_SIGN_IDENTITY` and
+`MAL_NOTARY_PROFILE` — signs with your Developer ID, notarises and staples. Neither an
+Apple Developer account nor notarisation is needed to build or run it locally.
 
-<br>
+To work on it in Xcode, open `Package.swift` directly. There is no separate `.xcodeproj`:
+the package *is* the project, and keeping one source of truth means the command line build
+and the IDE build cannot drift apart.
+
+The same engine is available headlessly:
+
+```bash
+swift build
+.build/debug/launchagain scan
+```
+
+## The command line
+
+```
+launchagain scan                        List candidates and their compatibility tier
+launchagain inspect <app>               Full report on one GUI application, with the reasons
+launchagain create <app> --count N      Create N isolated GUI application instances
+                                [--names "A,B,C"] [--lite]
+launchagain list                        Show all managed instances
+launchagain launch <selector>           Launch an instance
+launchagain quit <selector>             Ask an instance to quit
+launchagain rebuild <selector>          Rebuild from the current source app; data is preserved
+launchagain rename <selector> <name>    Rename (the number never changes)
+launchagain duplicate <selector>        New instance, same settings, empty profile
+launchagain delete <selector>           Remove one LaunchAgain-owned instance and its data
+launchagain renumber <app>              Explicitly renumber to 1…n
+launchagain doctor                      Find orphans, stale builds and source updates
+                                [--clean] [--purge-profiles] [--retire-legacy-store]
+launchagain diagnostics [path]          Write a report you can attach to a bug
+```
+
+A selector is a UUID, an instance number (`2`), or `AppName#2`.
+
+`--root <dir>` points the whole thing at an isolated data store, which is how the
+integration tests run without touching your real instances. One caveat if you use it by
+hand: an instance created under `--root` still runs under your real home directory, so it
+writes `~/Library/Preferences/<clone-id>.plist` there, and uninstalling it cannot clean
+that up — the cleanup is scoped to the alternate root's library. `launchagain doctor`
+reports the leftover.
+
+## What it does, mechanically
+
+Two separate problems, two separate mechanisms.
+
+**Isolation** is `--user-data-dir`. Electron and Chromium honour it, and it redirects
+profile-resident state: auth tokens, cookies, local storage, IndexedDB, cache, and the
+`SingletonLock` that otherwise enforces one-instance-per-app. Keychain and system privacy
+records are separate limitations. This needs no modification to the source app at all.
+
+**A separate Dock icon** needs a separate bundle, because macOS groups apps by bundle
+identifier. So each instance is:
+
+1. an APFS copy-on-write clone of the app (`cp -Rpc` — normally near-instant and
+   initially close to zero additional disk blocks),
+2. with a rewritten `CFBundleIdentifier` and `CFBundleDisplayName`,
+3. a generated badged `.icns`,
+4. a small compiled shim in place of the main executable, which `execv`s the real binary
+   with `--user-data-dir` prepended and rescues a recognised off-screen Electron window
+   state before launch,
+5. re-signed ad-hoc, inside-out, with `com.apple.security.cs.disable-library-validation`
+   added to the app's own entitlements.
+
+Copying is only one stage. Patching and re-signing nested Electron code can take a while,
+so the creation sheet switches immediately to a non-dismissible, step-level progress
+screen. If cloning, patching, signing or verifying the Full launcher fails in a way Lite
+mode can avoid, the instance is **not lost**. It falls back to Lite mode: no clone, a
+small launcher that opens the original app with its own `--user-data-dir`. Isolation is
+limited to profile-resident state; the original app's Dock, Keychain, privacy-permission
+and URL-scheme identity are shared. A failure that occurs only when the target app itself
+starts is reported at launch; the builder does not automate a live sign-in/launch probe.
 
 ## What works
 
-LaunchAgain handles **Electron and Chromium desktop apps**, which covers most of the AI and
-developer tools people want two of. It scans what you have installed and tells you, per app,
-exactly what it can and can't do — before you create anything.
+| Kind | Examples on a typical Mac | Result |
+|---|---|---|
+| Electron apps | Claude, VS Code, LM Studio, Kimi, RStudio, Antigravity, jamovi, Tad, Keeper | Full when inspection reports it — numbered Dock icons |
+| Chromium browsers | Google Chrome, Brave, Microsoft Edge | Full — numbered Dock icons |
+| Codex Desktop | `/Applications/ChatGPT.app` (`com.openai.codex`) | Limited/Full in the current inspection — GUI clone and numbered Dock icon; listed Team-ID capabilities are removed |
+| Command-line executables | `codex`, Claude Code | Refused — LaunchAgain launches GUI apps only |
+| Sandboxed / App Store apps | WhatsApp, Telegram | Refused, with the reason |
+| Native macOS apps | Microsoft Office, Zoom, VLC, Docker | Refused, with the reason |
+| Browser web apps | "Install as app" shortcuts for Gemini, YouTube, NotebookLM | Refused — isolate the browser instead |
 
-Verified in this beta:
+`launchagain scan --all` lists everything and `launchagain inspect <name>` explains any individual
+verdict. [LIMITATIONS.md](LIMITATIONS.md) covers the why in full.
 
-| App | Result |
-|---|---|
-| **Claude** | ✅ Separate accounts, separate Dock icons |
-| **Google Chrome** · **Brave** · **Microsoft Edge** | ✅ Separate profiles and Dock icons |
-| **VS Code** | ✅ Separate settings, extensions and windows |
-| **LM Studio** · **RStudio** · **OBS Studio** · **jamovi** · **Kimi** · **Tad** · **Antigravity** | ✅ Separate profiles |
-| **ChatGPT** | ⚠️ Works, but needs one extra step — see below |
+## Where things live
 
-Anything else Electron- or Chromium-based will most likely work too. Native macOS apps, Mac App
-Store apps and sandboxed apps **won't** — LaunchAgain tells you so rather than making a broken
-copy. It also only handles GUI applications: command-line tools like the `claude` CLI aren't
-something it can duplicate, since they don't have an app bundle to clone.
-
-### ⚠️ ChatGPT needs one extra step
-
-The ChatGPT desktop app stores your sign-in at `~/.codex`, a fixed path in your home folder —
-not inside the profile LaunchAgain redirects. So out of the box, every ChatGPT instance shares
-one session, and signing out of one signs out all of them, including the original.
-
-There's a fix, and it takes about ten seconds per instance: open the instance in LaunchAgain,
-go to **Advanced → environment variables**, and set `CODEX_HOME` to a folder of its own. That
-instance then gets a genuinely separate session.
-
-LaunchAgain shows you this warning before you create anything, and it won't set the variable for
-you — where an app keeps your data is your call, not a default someone else picks.
-
-<br>
-
-## Installing
-
-The beta is **not signed with an Apple Developer certificate**, so macOS will refuse to open it
-on the first try. This is expected and it's a one-time step:
-
-1. Download and open the `.dmg`, drag **LaunchAgain** to Applications
-2. **Right-click** the app in Applications and choose **Open**
-3. Click **Open** in the dialog that appears
-
-Double-clicking won't work the first time — it has to be right-click → Open. After that it opens
-normally. If macOS still refuses, run this in Terminal:
-
-```bash
-xattr -dr com.apple.quarantine /Applications/LaunchAgain.app
+```
+~/Applications/LaunchAgain/                   the numbered launcher apps
+/Applications/LaunchAgain/                    the same, for apps that refuse to run
+                                              anywhere but /Applications (LM Studio).
+                                              Created only when one needs it.
+~/Library/Application Support/LaunchAgain/
+    registry.json                             instances and their permanent numbers
+    registry.json.bak                         redundant copy of the same committed registry
+    instances/<uuid>/userdata                 one profile per instance
+    instances/<uuid>/logs                     per-instance logs
+    logs/launchagain.log                      the launcher's own log
 ```
 
-You're right to be cautious about that step in general. Signing is on the list for a later
-release.
+Those are LaunchAgain's own managed-state locations, and nothing leaves the machine.
+While a generated application runs, macOS or that third-party application can also write
+files under standard per-user Library and Darwin cache locations using the generated
+clone identifier. LaunchAgain records no vendor-wide path and never searches by app name;
+uninstall cleanup is restricted to an exact UUID and exact generated clone identifier.
 
-<br>
+Deleting an installed instance performs complete LaunchAgain-owned removal: its launcher
+and entire `instances/<uuid>` directory (profile, cookies, local storage, cache, logs and
+lock) are each moved to the Trash under a durable uninstall journal, its registry entry
+and recovery marker are removed, and the shared size cache is invalidated. If interrupted,
+that confirmed operation resumes on next launch. LaunchAgain asks macOS to clear the exact
+generated preference domain and removes its exact plist when present. Exact clone-scoped
+Preferences/ByHost, SyncedPreferences, Caches, updater, URL-session download,
+Application Support, Saved Application State, HTTP storage, WebKit, Cookies, Logs,
+Containers, Application Scripts, LaunchAgent and bounded Darwin cache/temp paths are
+also removed when present. The original source app, other instances and any profile
+directory the user explicitly placed outside LaunchAgain's folders are never deleted.
+Items in the Trash remain recoverable until it is emptied. LaunchAgain asks Launch
+Services to unregister only that exact launcher; it does not purge the shared
+LaunchServices database. Shared macOS TCC and Keychain records are intentionally outside
+this cleanup boundary.
 
-## How it works
+That cleanup only runs when you uninstall through LaunchAgain. Dragging a launcher to the
+Trash in Finder skips it, and what usually survives is one small file:
+`~/Library/Preferences/<generated-clone-id>.plist`. `launchagain doctor` lists any it
+finds, with the exact `defaults delete` command for each. It reports them and never
+deletes them: the filename shows LaunchAgain generated the file, but not which instance
+owned it, and a name pattern is not ownership.
 
-Two modes. LaunchAgain picks the right one and tells you which you're getting.
+If you upgraded from the first release, `launchagain doctor --retire-legacy-store` moves
+the old `MultipleAppsLauncher` directory to the Trash after you type `retire` to confirm.
+Read what it lists first — a profile in there may still hold a signed-in session.
 
-**Full** — makes a real copy of the app with its own identity, its own numbered Dock icon and its
-own profile. Genuinely separate accounts. Costs disk space: roughly 740 MB for a Claude instance,
-1.75 GB for ChatGPT.
+## Persistence across restarts
 
-**Lite** — runs the original app pointed at a separate profile. Nearly no disk space, but it
-shares the original's identity, so for some apps it will also share the sign-in. LaunchAgain
-refuses to create a Lite instance of an app where that would silently share your account, unless
-you tell it you understand.
+Instance identity, permanent numbering, launcher paths and profile paths are committed to
+`registry.json` with an atomic rename, a synchronized file, a redundant parseable copy and
+a synchronized containing directory. Every read-modify-write of that file happens under an
+advisory lock, and a number drawn for a build in progress is held under its own lock until
+the build commits — so the interface and the command line can run at the same time without
+issuing the same number twice or losing each other's writes. On macOS, LaunchAgain also requests a full storage
+cache flush. A normal reboot therefore does not depend on any in-memory application state.
 
-Your original app is never modified. Your existing profile is never touched, moved or copied —
-new instances start signed out and empty, which is the point.
+The numbered launcher bundles and each profile live in persistent user directories, not
+temporary storage. Reopening LaunchAgain after login reconstructs the dashboard from disk.
+The registry is atomically persisted in Application Support, and every newly built
+launcher also carries a signed recovery record so **Refresh Installed Launchers** can
+rebuild a missing entry after an uninstall/reinstall, provided the intact verifiable
+launcher remains as an immediate `.app` child of one of the two launcher directories —
+`~/Applications/LaunchAgain` or `/Applications/LaunchAgain`. The
+profile must also remain for its signed-in session data to survive. Launchers made by the
+first release are recognised from their generated Info.plist and instance configuration.
+Damaged, duplicated or ambiguous launchers are reported rather than silently adopted.
+LaunchAgain never removes an orphan profile
+during startup. LaunchAgain does not automatically
+relaunch account apps after login — launch the instance when you want it — but its existing
+session data remains in that instance's profile.
 
-<br>
+## Signing in the first time
 
-## Known limits in this beta
+If an app signs in through a custom URL scheme — `claude://…` — only one Full launcher can
+own that scheme at a time, so a sign-in link comes back to whichever Full launcher
+registered last. Sign in one at a time; a Full instance has a **Claim URL Schemes**
+action if ownership must be changed. A Lite launcher intentionally declares none of the
+source app's schemes because it opens the vendor-signed original. Its browser callback may
+therefore return to the original/default app rather than the intended profile; use an
+in-app, device-code or password sign-in when the app offers one.
 
-- **Unsigned**, so the install has the extra step above
-- **ChatGPT** needs the `CODEX_HOME` step for separate accounts
-- Sign-in links that bounce through a browser may return you to the original app rather than the
-  instance you started from; use in-app or device-code sign-in where offered
-- Apps that update themselves may replace an instance's identity — rebuild it from the source app
-  if that happens
-- Deleting an instance removes its profile, and that's permanent
+## Tests
 
-<br>
+```bash
+swift test                          # 356 tests: core, engine, recovery, reboot, migration and hosted SwiftUI
+swift build -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete
+./Scripts/integration-test.sh       # end-to-end against a synthetic app, in a scratch store
+./Scripts/ui-regression-test.sh 3   # repeated 1→2→1 dashboard view-graph regression
+./Scripts/publish-pages.sh          # publish the allow-listed de-identified Pages payload
+```
 
-## Feedback
+`docs/VALIDATION.md` records what was verified on a real machine, with the commands and
+their output, and a separate section listing what could not be verified.
 
-This is a beta and the whole point is finding what breaks. Please
-[open an issue](https://github.com/odonnellmatt/LaunchAgain/issues) with:
+The unit suite covers the parts that would be expensive to get wrong: number allocation
+across create/delete/renumber, atomic registry writes, reboot reconstruction and backup
+recovery, Info.plist and entitlement patching, argv construction with adversarial paths,
+transaction rollback, and icon layout for 1, 2, 9, 10, 99 and 100. The macOS suite builds real clones of a synthetic
+app and verifies the signature. The integration suite also proves that command-line
+executables are rejected and that completed owned removal leaves no per-instance
+directory or recovery marker at its original location.
 
-- Which app, and which macOS version
-- What you expected and what happened
-- Whether it was a Full or Lite instance (LaunchAgain shows this on the instance)
+`docs/manual-checklist.md` lists the things a human still has to look at, such as badge
+legibility in the Dock.
 
-Reports that an app *works* are useful too — the compatibility list above grows from what people
-actually try.
+## AI and maintainer instructions
 
-<br>
+Every human or AI maintainer must read this README, `AGENTS.md`, `CHANGELOG.md`, and the
+documents relevant to the proposed change before editing code. `AGENTS.md` is the
+authoritative operational contract. In particular:
 
-## Privacy
+1. Never test destructive operations against a real profile or source application. Use
+   `--root`, temporary fixtures, and the synthetic integration application.
+2. Do not weaken the exact-path deletion boundary, profile isolation, source-app
+   immutability, local-only privacy model, or fail-closed shared-credential gate.
+3. Add a regression test that fails for each fixed defect, then run the focused test, the
+   full suite, strict-concurrency build, integration test, and package verification in
+   proportion to the change.
+4. Every patch or fix must update the current-release summary in this README,
+   `CHANGELOG.md`, and `site/patches.html`. Update the Pages maintainer guide when the
+   workflow, architecture, or release process changes, then run
+   `./Scripts/publish-pages.sh` after the source change is committed.
+5. Keep the repository de-identified: use `/Users/example`, `work@example.com`, and generic
+   labels; never commit real names, usernames, email addresses, home paths, diagnostics,
+   credentials, local settings, or user profiles.
+6. Do not claim a check passed unless its output was observed. Record remaining manual or
+   environment-dependent checks explicitly.
 
-LaunchAgain runs entirely on your Mac. No telemetry, no analytics, no network calls of its own,
-no account. It never reads, copies or moves your Keychain, and it doesn't touch your existing
-profiles. Instances are ordinary apps in a folder you can inspect.
+## Documents
 
-<br>
-
----
-
-## Screenshots
-
-<img width="990" height="671" alt="Screenshot 2026-07-28 at 7 59 02 am" src="https://github.com/user-attachments/assets/db134483-f02a-4d60-bc24-b51ff859e657" />
-
-
-<br>
+- [LIMITATIONS.md](LIMITATIONS.md) — what does not work and why, in detail
+- [SECURITY.md](SECURITY.md) — exactly what is signed, what ad-hoc signing means
+- [PRIVACY.md](PRIVACY.md) — every file written, and the absence of telemetry
+- [SPEC.md](SPEC.md) — the original engineering specification
+- [research/](research/) — the Milestone 0 experiments and their results
+- [AGENTS.md](AGENTS.md) — mandatory operating instructions for AI and human maintainers
+- [CONTRIBUTING.md](CONTRIBUTING.md) — change, review, validation and release workflow
+- [NOTICE](NOTICE) — third-party attribution

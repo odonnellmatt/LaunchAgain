@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Verified LaunchAgain patches and release notes.">
+  <title>Patches · LaunchAgain</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a class="brand" href="index.html"><span class="mark" aria-hidden="true">LA</span>LaunchAgain</a>
+    <div class="links"><a href="patches.html" aria-current="page">Patches</a><a href="maintainers.html">Maintainers</a></div>
+  </nav>
+  <main class="section">
+    <div class="eyebrow">Release record</div>
+    <h1>Verified patches</h1>
+    <p class="lead">User-visible changes, their cause, and the evidence used before packaging.</p>
+    <article class="release">
+      <div class="meta">0.1.2 · Hardened beta release</div>
+      <h2>Reachable windows after a monitor change</h2>
+      <p><strong>Root cause:</strong> a cloned Electron profile retained coordinates for a 1920×1080 external display beginning at x=1800. With only an 1800-point laptop display active, the saved window began at x=2234 and reopened beyond the usable screen.</p>
+      <p><strong>Fix:</strong> the generated shim validates the recognized window-state schema, checks title-bar reachability across active displays, preserves the first original, and centres only an unreachable window. Unknown keys remain intact; malformed, oversized, symbolic-link, and unfamiliar files are skipped.</p>
+      <p><strong>Hardening:</strong> removed a shared mutable date formatter, made process pipe collection and progress reporting Swift 6 safe, fixed the failed-spawn reader lifetime, returned deletion reports across queues without shared captured mutation, moved CLI launch/quit work off the main executor so those commands cannot deadlock themselves, made AppKit service cleanup portable across supported Swift toolchains, and gave window identity one stable owner in the system title bar across macOS versions.</p>
+      <p><strong>Release evidence:</strong> CI runs are grouped by source commit, preventing a delayed event for an older revision from canceling validation of the current one. Source and Pages workflows use the current official Node 24 action majors, including <code>actions/checkout@v7</code>.</p>
+      <p><strong>Evidence:</strong> pure geometry/file regression tests, a shipped-shim process integration test, the complete Swift suite, warnings-as-errors strict-concurrency build, isolated integration run, repeated hosted-SwiftUI regression, signature checks, and DMG inspection.</p>
+      <p><strong>Manual boundary:</strong> the saved-coordinate failure was confirmed from a real profile and reproduced deterministically. Physical drag/disconnect behavior still belongs in the two-display manual checklist because only one display was available during automated validation.</p>
+    </article>
+    <article class="release">
+      <div class="meta">1.2.5 · Mode and rebuild consistency</div>
+      <h2>One effective-mode decision</h2>
+      <p>The interface and builder now use the same compatibility decision, pending inspection fails closed, creation dates survive rebuilds, and remedies name actions the product can actually perform.</p>
+    </article>
+    <p>The complete historical record is maintained in the private repository's <code>CHANGELOG.md</code>.</p>
+  </main>
+  <footer>Every code patch must update this page and the repository changelog.</footer>
+</body>
+</html>

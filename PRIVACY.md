@@ -20,6 +20,9 @@ Everything below happens on your Mac and stays on your Mac.
     registry.json.bak                     redundant copy of the same committed registry
     registry.json.corrupt-*               preserved bytes if both copies were unreadable
     instances/<uuid>/userdata/            the instance's own profile — the app's data
+        window-state.json.launchagain-backup
+                                            first original off-screen Electron window state,
+                                            created only when display recovery is required
     instances/<uuid>/logs/                per-instance logs
     instances/<uuid>/instance.lock        the pid of the running session, if any
     removed-instances/<uuid>.removed      interrupted-uninstall journal; absent when complete
@@ -55,7 +58,7 @@ mode, the bundle and profile paths, the badge colour and shape, the source app v
 was built from, any extra arguments or environment variables you set, timestamps, and any
 notes the build produced.
 
-The account label is a free-text reminder — "work", "matt@company.com" — that is displayed
+The account label is a free-text reminder — "work", "work@example.com" — that is displayed
 in the interface and never used to authenticate anything. Leave it blank if you would
 rather it did not exist.
 
@@ -71,7 +74,11 @@ caches, and the app's own settings for that account.
 
 The launcher writes the directory and then leaves the profile bytes alone. LaunchAgain
 enumerates filesystem metadata to show profile size, but it does not open profile files,
-copy a profile to another instance or upload anything. Duplicating an instance copies its
+copy a profile to another instance or upload anything. The generated launch shim may read
+the top-level `window-state.json` geometry used by some Electron apps. It changes only the
+saved position and display bounds when no draggable title-bar area is reachable on any
+active display, preserves unknown keys, and keeps the first original beside the file. It
+does not inspect cookies, tokens, conversations, or other profile content. Duplicating an instance copies its
 *settings* and starts with an empty profile, precisely so a signed-in session is not
 silently cloned into a second place.
 

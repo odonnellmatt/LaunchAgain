@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="LaunchAgain is a local-only macOS utility for running isolated instances of compatible desktop applications.">
+  <title>LaunchAgain</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a class="brand" href="index.html"><span class="mark" aria-hidden="true">LA</span>LaunchAgain</a>
+    <div class="links"><a href="patches.html">Patches</a><a href="maintainers.html">Maintainers</a></div>
+  </nav>
+  <main>
+    <header class="hero">
+      <div class="eyebrow">macOS · local only · beta version 0.1.2</div>
+      <h1>Separate profiles. Clear identities.</h1>
+      <p class="lead">Run multiple accounts of a compatible Electron or Chromium app at the same time, with permanent numbers and independent profile directories.</p>
+      <span class="pill">No telemetry · no network access</span>
+    </header>
+    <section class="grid" aria-label="Project principles">
+      <article class="card"><h2>Isolated</h2><p>Each instance receives its own Chromium user-data directory. Full-compatible apps also receive a numbered bundle identity and Dock icon.</p></article>
+      <article class="card"><h2>Reversible</h2><p>The original application is never modified. Confirmed removal is exact-path bounded and moves owned items to the Trash where macOS permits.</p></article>
+      <article class="card"><h2>Honest</h2><p>Keychain, privacy permissions, URL schemes, Lite-mode sharing, ad-hoc signing, and unsupported apps are disclosed instead of hidden.</p></article>
+    </section>
+    <section class="section">
+      <div class="eyebrow">Current fix</div>
+      <h2>Windows return from disconnected displays</h2>
+      <p>Version 0.1.2 detects the recognized Electron window-state shape before launch. When no draggable part of the saved title bar exists on any active display, the generated launcher preserves the original state and centres the window on the main screen.</p>
+      <p class="callout"><strong>Existing instances:</strong> install 0.1.2, then choose <strong>Rebuild from Source App</strong> once so the generated launcher receives the new repair logic. The profile, sign-in, name, and permanent number are preserved.</p>
+    </section>
+    <section class="section">
+      <div class="eyebrow">Distribution</div>
+      <h2>Builds say what they are</h2>
+      <p>Local builds are ad-hoc signed and are suitable for testing on the machine that built them. A broadly distributed release must be Developer ID signed, notarized by Apple, stapled, and accompanied by a checksum. The project never presents an ad-hoc artifact as notarized.</p>
+    </section>
+  </main>
+  <footer>LaunchAgain documentation · Public site content is de-identified · Source repository is private</footer>
+</body>
+</html>

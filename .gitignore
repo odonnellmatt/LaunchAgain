@@ -1,0 +1,40 @@
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Build output from Scripts/build-app.sh and Scripts/package-dmg.sh
+build/
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+
+# macOS
+.DS_Store
+
+# Local developer and agent configuration
+.claude/settings.local.json
+.codex/
+.env
+.env.*
+!.env.example
+
+# Signing and notarization material must never enter source control
+*.cer
+*.p12
+*.provisionprofile
+*.mobileprovision
+
+# A LaunchAgain data store must never end up in the repository: registry.json holds
+# real instance identities and profile paths. Nothing here should ever produce one,
+# but a stray copy from running the CLI in this directory is easy to make.
+/registry.json
+/registry.json.bak
+
+# Badge previews for the manual legibility check. The Milestone 0 reports themselves
+# are deliverables and are committed; these images are regenerable, and the harness
+# that produced them was removed with the command-line-tool subsystem.
+research/assets/
